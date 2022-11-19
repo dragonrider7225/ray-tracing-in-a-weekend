@@ -11,3 +11,6 @@ Cargo.lock
 
 # Temporary and local Vim/Neovim state
 session.vim
+
+# Generated image files
+*.ppm
