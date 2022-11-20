@@ -10,9 +10,10 @@ use std::{
 };
 
 use ray_tracing::{
+    camera::Camera,
     object::{List, Sphere},
     ray::{Hittable, RayHit},
-    Color, Point3, Ray, Vec3,
+    Color, Point3, Ray,
 };
 
 fn ray_color(ray: &Ray, world: &dyn Hittable) -> Color {
@@ -44,20 +45,13 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     const ASPECT_RATIO: f64 = 16. / 9.;
     const WIDTH: u32 = 400;
     const HEIGHT: u32 = (WIDTH as f64 / ASPECT_RATIO) as _;
-
-    let viewport_height = 2.;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.;
+    const SAMPLES_PER_PIXEL: usize = 100;
 
     let mut world = List::default();
     world.push(Arc::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
     world.push(Arc::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
 
-    let origin = Point3::default();
-    let horizontal = Vec3::new(viewport_width, 0., 0.);
-    let vertical = Vec3::new(0., viewport_height, 0.);
-    let lower_left_corner =
-        origin - horizontal / 2. - vertical / 2. - Vec3::new(0., 0., focal_length);
+    let camera = Camera::new(ASPECT_RATIO);
 
     writeln!(out, "P3")?;
     writeln!(out, "{WIDTH} {HEIGHT}")?;
@@ -65,15 +59,11 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     for j in (0..HEIGHT).rev() {
         writeln!(io::stderr().lock(), "Scanlines remaining: {j}")?;
         for i in 0..WIDTH {
-            let u = i as f64 / (WIDTH - 1) as f64;
-            let v = j as f64 / (HEIGHT - 1) as f64;
-            let color = ray_color(
-                &Ray::new(
-                    origin,
-                    lower_left_corner + u * horizontal + v * vertical - origin,
-                ),
-                &world,
-            );
+            let color = Color::merge_samples((0..SAMPLES_PER_PIXEL).map(|_| {
+                let u = (i as f64 + rand::random::<f64>()) / (WIDTH - 1) as f64;
+                let v = (j as f64 + rand::random::<f64>()) / (HEIGHT - 1) as f64;
+                ray_color(&camera.get_ray(u, v), &world)
+            }));
             writeln!(out, "{color}")?;
         }
     }

@@ -4,6 +4,9 @@
 #![warn(missing_copy_implementations, missing_docs, rust_2018_idioms)]
 #![deny(unsafe_op_in_unsafe_fn, missing_debug_implementations)]
 
+/// A camera produces [`Ray`]s.
+pub mod camera;
+
 /// An RGB color. The intensity of each component is in the range `[0.0, 1.0]`.
 pub mod color;
 pub use color::Color;

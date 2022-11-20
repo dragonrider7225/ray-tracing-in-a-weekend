@@ -3,6 +3,8 @@ use std::{
     ops::{Div, DivAssign, Index, Mul, MulAssign},
 };
 
+use crate::Vec3;
+
 /// An RGB color. The intensity of each component is in the range `[0.0, 1.0]`.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Color {
@@ -18,6 +20,20 @@ impl Color {
             r: r.clamp(0., 1.),
             g: g.clamp(0., 1.),
             b: b.clamp(0., 1.),
+        }
+    }
+
+    /// Averages the samples to produce a single color.
+    pub fn merge_samples(samples: impl Iterator<Item = Self>) -> Self {
+        let (num_samples, sum) = samples
+            .map(|sample| Vec3::new(sample.r, sample.g, sample.b))
+            .fold((0., Vec3::default()), |(num_samples, sum), sample| {
+                (num_samples + 1., sum + sample)
+            });
+        Self {
+            r: sum.x() / num_samples,
+            g: sum.y() / num_samples,
+            b: sum.z() / num_samples,
         }
     }
 
