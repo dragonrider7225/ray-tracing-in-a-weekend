@@ -50,6 +50,18 @@ impl Color {
     pub fn set_blue(&mut self, b: f64) {
         self.b = b.clamp(0., 1.);
     }
+
+    /// Interpolates linearly from `self` to `other`. If `t <= 0.0`, returns `self`. If `t >= 1.0`,
+    /// returns `other`. Otherwise, each component of the returned `Color` is `1-t` times that
+    /// component of `self` plus `t` times that component of `other`.
+    pub fn interpolate(&self, other: &Self, t: f64) -> Self {
+        let t = t.clamp(0., 1.);
+        Self::new(
+            (1. - t) * self.r + t * other.r,
+            (1. - t) * self.g + t * other.g,
+            (1. - t) * self.b + t * other.b,
+        )
+    }
 }
 
 impl Display for Color {

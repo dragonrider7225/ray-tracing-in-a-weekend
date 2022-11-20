@@ -8,6 +8,10 @@
 pub mod color;
 pub use color::Color;
 
+/// The path of a light ray.
+pub mod ray;
+pub use ray::Ray;
+
 /// A 3D vector.
 pub mod vec3;
 pub use vec3::Vec3;
