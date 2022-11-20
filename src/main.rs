@@ -4,17 +4,39 @@
 #![warn(missing_copy_implementations, missing_docs, rust_2018_idioms)]
 #![deny(unsafe_op_in_unsafe_fn, missing_debug_implementations)]
 
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    sync::Arc,
+};
 
-use ray_tracing::{Color, Point3, Ray, Vec3};
+use ray_tracing::{
+    object::{List, Sphere},
+    ray::{Hittable, RayHit},
+    Color, Point3, Ray, Vec3,
+};
 
-fn ray_color(ray: &Ray) -> Color {
-    if ray.hits_sphere(&Point3::new(0., 0., -1.), 0.5) {
-        Color::new(1., 0., 0.)
-    } else {
-        let unit_direction = ray.direction().normalized();
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        Color::new(1., 1., 1.).interpolate(&Color::new(0.5, 0.7, 1.0), t)
+fn ray_color(ray: &Ray, world: &dyn Hittable) -> Color {
+    match world.hit_by(ray, 0.0..=f64::INFINITY) {
+        None => {
+            let unit_direction = ray.direction().normalized();
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            Color::new(1., 1., 1.).interpolate(&Color::new(0.5, 0.7, 1.0), t)
+        }
+        Some(RayHit { normal, .. }) => {
+            if normal.dot(ray.direction()) < 0. {
+                Color::new(
+                    (normal.x() + 1.) / 2.,
+                    (normal.y() + 1.) / 2.,
+                    (normal.z() + 1.) / 2.,
+                )
+            } else {
+                Color::new(
+                    (-normal.x() + 1.) / 2.,
+                    (-normal.y() + 1.) / 2.,
+                    (-normal.z() + 1.) / 2.,
+                )
+            }
+        }
     }
 }
 
@@ -26,6 +48,10 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     let viewport_height = 2.;
     let viewport_width = ASPECT_RATIO * viewport_height;
     let focal_length = 1.;
+
+    let mut world = List::default();
+    world.push(Arc::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
+    world.push(Arc::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
 
     let origin = Point3::default();
     let horizontal = Vec3::new(viewport_width, 0., 0.);
@@ -41,10 +67,13 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
         for i in 0..WIDTH {
             let u = i as f64 / (WIDTH - 1) as f64;
             let v = j as f64 / (HEIGHT - 1) as f64;
-            let color = ray_color(&Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + v * vertical - origin,
-            ));
+            let color = ray_color(
+                &Ray::new(
+                    origin,
+                    lower_left_corner + u * horizontal + v * vertical - origin,
+                ),
+                &world,
+            );
             writeln!(out, "{color}")?;
         }
     }

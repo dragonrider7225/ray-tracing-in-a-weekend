@@ -8,6 +8,9 @@
 pub mod color;
 pub use color::Color;
 
+/// Primitive objects that can be hit by [`Ray`]s.
+pub mod object;
+
 /// The path of a light ray.
 pub mod ray;
 pub use ray::Ray;
