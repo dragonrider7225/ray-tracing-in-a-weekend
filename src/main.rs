@@ -9,9 +9,13 @@ use std::io::{self, Write};
 use ray_tracing::{Color, Point3, Ray, Vec3};
 
 fn ray_color(ray: &Ray) -> Color {
-    let unit_direction = ray.direction().normalized();
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    Color::new(1., 1., 1.).interpolate(&Color::new(0.5, 0.7, 1.0), t)
+    if ray.hits_sphere(&Point3::new(0., 0., -1.), 0.5) {
+        Color::new(1., 0., 0.)
+    } else {
+        let unit_direction = ray.direction().normalized();
+        let t = 0.5 * (unit_direction.y() + 1.0);
+        Color::new(1., 1., 1.).interpolate(&Color::new(0.5, 0.7, 1.0), t)
+    }
 }
 
 fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {

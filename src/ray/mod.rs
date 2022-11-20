@@ -28,4 +28,15 @@ impl Ray {
     pub fn at(&self, time: f64) -> Point3 {
         self.origin + time * self.direction
     }
+
+    /// Checks whether the ray passes through the interior of the sphere with radius `radius`
+    /// centered at `center`.
+    pub fn hits_sphere(&self, center: &Point3, radius: f64) -> bool {
+        let co = self.origin() - center;
+        let a = self.direction().length_squared();
+        let b = 2. * co.dot(self.direction());
+        let c = co.length_squared() - radius * radius;
+        let discriminant = b * b - 4. * a * c;
+        discriminant > 0.
+    }
 }
