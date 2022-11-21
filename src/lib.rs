@@ -11,6 +11,10 @@ pub mod camera;
 pub mod color;
 pub use color::Color;
 
+/// A description of how rays scatter off of a surface.
+pub mod material;
+pub use material::Material;
+
 /// Primitive objects that can be hit by [`Ray`]s.
 pub mod object;
 

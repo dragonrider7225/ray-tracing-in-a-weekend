@@ -78,6 +78,15 @@ impl Color {
             (1. - t) * self.b + t * other.b,
         )
     }
+
+    /// Multiplies the corresponding channels of the two colors together.
+    pub fn attenuate(&self, rhs: &Self) -> Self {
+        Self::new(
+            self.red() * rhs.red(),
+            self.green() * rhs.green(),
+            self.blue() * rhs.blue(),
+        )
+    }
 }
 
 impl Display for Color {

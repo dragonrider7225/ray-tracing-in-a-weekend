@@ -1,23 +1,29 @@
-use std::ops::RangeInclusive;
+use std::{
+    fmt::{self, Debug, Formatter},
+    ops::RangeInclusive,
+    sync::Arc,
+};
 
 use crate::{
     ray::{Hittable, RayHit},
-    Point3, Ray, Vec3,
+    Material, Point3, Ray, Vec3,
 };
 
 /// A sphere.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
     /// Creates a new sphere centered at `center` and with a radius of `radius`.
-    pub fn new(center: Point3, radius: f64) -> Self {
+    pub fn new(center: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         Self {
             center,
             radius: radius.max(0.),
+            material,
         }
     }
 
@@ -34,6 +40,15 @@ impl Sphere {
     /// Computes the normal vector at `p` assuming that `p` is on the surface of the sphere.
     fn normal(&self, p: Point3) -> Vec3 {
         (p - self.center()) / self.radius()
+    }
+}
+
+impl Debug for Sphere {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Sphere")
+            .field("center", &self.center)
+            .field("radius", &self.radius)
+            .finish_non_exhaustive()
     }
 }
 
@@ -56,6 +71,7 @@ impl Hittable for Sphere {
                     p,
                     normal: self.normal(p),
                     t: t0,
+                    material: Arc::clone(&self.material),
                 })
             } else if valid_t.contains(&t1) {
                 let p = ray.at(t1);
@@ -63,10 +79,19 @@ impl Hittable for Sphere {
                     p,
                     normal: self.normal(p),
                     t: t1,
+                    material: Arc::clone(&self.material),
                 })
             } else {
                 None
             }
         }
+    }
+}
+
+impl PartialEq for Sphere {
+    fn eq(&self, other: &Self) -> bool {
+        self.center == other.center
+            && self.radius == other.radius
+            && self.material.name() == other.material.name()
     }
 }

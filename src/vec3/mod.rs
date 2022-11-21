@@ -111,6 +111,17 @@ impl Vec3 {
         ret.normalize();
         ret
     }
+
+    /// Returns whether the vector is sufficiently close to zero to potentially cause problems.
+    pub fn near_zero(&self) -> bool {
+        const EPSILON: f64 = 1e-8;
+        self.x().abs() < EPSILON && self.y().abs() < EPSILON && self.z().abs() < EPSILON
+    }
+
+    /// Returns the reflection of `self` about `rhs` in the plane containing both.
+    pub fn reflect_about(&self, rhs: &Self) -> Self {
+        self - 2. * self.dot(rhs) * rhs
+    }
 }
 
 impl Add for Vec3 {
