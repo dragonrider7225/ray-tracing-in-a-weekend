@@ -1,6 +1,14 @@
 use std::{
     fmt::{self, Display, Formatter},
-    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Range, Sub, SubAssign,
+    },
+};
+
+use rand::{
+    distributions::{Standard, Uniform},
+    prelude::Distribution,
+    Rng,
 };
 
 /// A 3D vector.
@@ -15,6 +23,30 @@ impl Vec3 {
     /// Creates a new `Vec3` that represents the vector `(x, y, z)`.
     pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
+    }
+
+    /// Generates a uniformly-distributed random vector from the cube `(range, range, range)`.
+    pub fn random(range: Range<f64>) -> Self {
+        Uniform::new(range.start, range.end).sample(&mut rand::thread_rng())
+    }
+
+    /// Generates a uniformly-distributed random vector from the unit sphere centered on the
+    /// origin.
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let v = Self::random(-1.0..1.);
+            if v.length_squared() < 1. {
+                break v;
+            }
+        }
+    }
+
+    /// Generates a uniformly-distributed random vector from the surface of the unit sphere
+    /// centered on the origin.
+    pub fn random_unit_vector() -> Self {
+        let mut ret = Self::random_in_unit_sphere();
+        ret.normalize();
+        ret
     }
 
     /// Gets the x-coordinate of the vector.
@@ -243,5 +275,27 @@ impl SubAssign for Vec3 {
         self.x -= rhs.x;
         self.y -= rhs.y;
         self.z -= rhs.z;
+    }
+}
+
+impl Distribution<Vec3> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        let mut coords = <&Self as Distribution<f64>>::sample_iter(self, rng).take(3);
+        Vec3 {
+            x: coords.next().unwrap(),
+            y: coords.next().unwrap(),
+            z: coords.next().unwrap(),
+        }
+    }
+}
+
+impl Distribution<Vec3> for Uniform<f64> {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        let mut coords = <&Self as Distribution<f64>>::sample_iter(self, rng).take(3);
+        Vec3 {
+            x: coords.next().unwrap(),
+            y: coords.next().unwrap(),
+            z: coords.next().unwrap(),
+        }
     }
 }
