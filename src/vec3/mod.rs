@@ -122,6 +122,19 @@ impl Vec3 {
     pub fn reflect_about(&self, rhs: &Self) -> Self {
         self - 2. * self.dot(rhs) * rhs
     }
+
+    /// Refracts `self` through a surface with the specified outward-facing normal vector. The
+    /// refractive index of the outward material is `eta_from` and the refractive index of the
+    /// inward material is `eta_to`.
+    pub fn refract(&self, normal: &Self, eta_from: f64, eta_to: f64) -> Self {
+        let s = self.normalized();
+        let cos_theta = -s.dot(normal);
+        let ret_perpendicular = eta_from / eta_to * (s + cos_theta * normal);
+        let ret_parallel = if cos_theta < 0. { 1. } else { -1. }
+            * (1. - ret_perpendicular.length_squared()).abs().sqrt()
+            * normal;
+        ret_perpendicular + ret_parallel
+    }
 }
 
 impl Add for Vec3 {

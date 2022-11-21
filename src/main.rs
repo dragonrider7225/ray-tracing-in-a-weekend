@@ -11,10 +11,10 @@ use std::{
 
 use ray_tracing::{
     camera::Camera,
-    material::{Lambertian, Metal, ScatterRecord},
+    material::{Dielectric, Lambertian, Metal, ScatterRecord},
     object::{List, Sphere},
     ray::Hittable,
-    Color, Point3, Ray,
+    Color, Material, Point3, Ray,
 };
 
 fn ray_color(ray: &Ray, world: &dyn Hittable, max_depth: usize) -> Color {
@@ -50,10 +50,10 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     const MAX_DEPTH: usize = 50;
 
     let mut world = List::default();
-    let ground_material = Arc::new(Lambertian::new(Color::new(0.6, 0.8, 0.1)));
-    let center_material = Arc::new(Lambertian::new(Color::new(0.6, 0.3, 0.9)));
-    let left_material = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.1));
-    let right_material = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.5));
+    let ground_material: Arc<dyn Material> = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.1)));
+    let center_material: Arc<dyn Material> = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let left_material: Arc<dyn Material> = Arc::new(Dielectric::new(Color::new(1., 1., 1.), 1.5));
+    let right_material: Arc<dyn Material> = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.5));
     world.push(Arc::new(Sphere::new(
         Point3::new(0., -100.5, -1.),
         100.,
@@ -67,6 +67,11 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     world.push(Arc::new(Sphere::new(
         Point3::new(-1., 0., -1.),
         0.5,
+        Arc::clone(&left_material),
+    )));
+    world.push(Arc::new(Sphere::new(
+        Point3::new(-1., 0., -1.),
+        -0.4,
         left_material,
     )));
     world.push(Arc::new(Sphere::new(
