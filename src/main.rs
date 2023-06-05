@@ -11,11 +11,11 @@ use std::{
 
 use ray_tracing::{
     angle::Angle,
-    camera::Camera,
-    material::{Lambertian, ScatterRecord},
+    camera::{Camera, Orientation},
+    material::{Dielectric, Lambertian, Metal, ScatterRecord},
     object::{List, Sphere},
     ray::Hittable,
-    Color, Point3, Ray,
+    Color, Point3, Ray, Vec3,
 };
 
 fn ray_color(ray: &Ray, world: &dyn Hittable, max_depth: usize) -> Color {
@@ -50,22 +50,46 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     const SAMPLES_PER_PIXEL: usize = 100;
     const MAX_DEPTH: usize = 50;
 
-    let r: f64 = Angle::Degrees(45.).cos();
     let mut world = List::default();
-    let left_material = Arc::new(Lambertian::new(Color::new(0., 0., 1.)));
-    let right_material = Arc::new(Lambertian::new(Color::new(1., 0., 0.)));
+    let ground_material = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let center_material = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let left_material = Arc::new(Dielectric::new(1.5));
+    let right_material = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
     world.push(Arc::new(Sphere::new(
-        Point3::new(-r, 0., -1.),
-        r,
+        Point3::new(0., -100.5, -1.),
+        100.,
+        ground_material,
+    )));
+    world.push(Arc::new(Sphere::new(
+        Point3::new(0., 0., -1.),
+        0.5,
+        center_material,
+    )));
+    world.push(Arc::new(Sphere::new(
+        Point3::new(-1., 0., -1.),
+        0.5,
+        Arc::clone(&left_material),
+    )));
+    world.push(Arc::new(Sphere::new(
+        Point3::new(-1., 0., -1.),
+        -0.45,
         left_material,
     )));
     world.push(Arc::new(Sphere::new(
-        Point3::new(r, 0., -1.),
-        r,
+        Point3::new(1., 0., -1.),
+        0.5,
         right_material,
     )));
 
-    let camera = Camera::new(Angle::Degrees(90.), ASPECT_RATIO);
+    let camera = Camera::new(
+        Orientation {
+            origin: Point3::new(-2., 2., 1.),
+            look_at: Point3::new(0., 0., -1.),
+            up: Vec3::new(0., 1., 0.),
+        },
+        Angle::Degrees(20.),
+        ASPECT_RATIO,
+    );
 
     writeln!(out, "P3")?;
     writeln!(out, "{WIDTH} {HEIGHT}")?;
