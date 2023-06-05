@@ -51,6 +51,7 @@ impl Debug for Sphere {
         f.debug_struct("Sphere")
             .field("center", &self.center)
             .field("radius", &self.radius)
+            .field("material", &self.material.name())
             .finish_non_exhaustive()
     }
 }
