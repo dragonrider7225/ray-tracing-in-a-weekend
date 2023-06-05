@@ -128,7 +128,7 @@ fn random_scene() -> List {
         material,
     )));
 
-    let material = Arc::new(Metal::new(Color::new(0.4, 0.2, 0.1), 0.));
+    let material = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.));
     world.push(Arc::new(Sphere::new(Point3::new(4., 1., 0.), 1., material)));
 
     world
