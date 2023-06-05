@@ -1,6 +1,12 @@
 use std::{
     fmt::{self, Display, Formatter},
-    ops::{Div, DivAssign, Index, Mul, MulAssign},
+    ops::{Div, DivAssign, Index, Mul, MulAssign, Range},
+};
+
+use rand::{
+    distributions::{Standard, Uniform},
+    prelude::Distribution,
+    Rng,
 };
 
 use crate::Vec3;
@@ -87,6 +93,11 @@ impl Color {
             self.blue() * rhs.blue(),
         )
     }
+
+    /// Generates a random color where each channel is uniformly-distributed in the given range.
+    pub fn random(range: Range<f64>) -> Self {
+        Uniform::from(range).sample(&mut rand::thread_rng())
+    }
 }
 
 impl Display for Color {
@@ -152,5 +163,27 @@ impl MulAssign<f64> for Color {
         self.set_red(self.r * rhs);
         self.set_green(self.g * rhs);
         self.set_blue(self.b * rhs);
+    }
+}
+
+impl Distribution<Color> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Color {
+        let mut channels = <&Self as Distribution<f64>>::sample_iter(self, rng).take(3);
+        Color::new(
+            channels.next().unwrap(),
+            channels.next().unwrap(),
+            channels.next().unwrap(),
+        )
+    }
+}
+
+impl Distribution<Color> for Uniform<f64> {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Color {
+        let mut channels = <&Self as Distribution<f64>>::sample_iter(self, rng).take(3);
+        Color::new(
+            channels.next().unwrap(),
+            channels.next().unwrap(),
+            channels.next().unwrap(),
+        )
     }
 }
