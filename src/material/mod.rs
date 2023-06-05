@@ -1,3 +1,5 @@
+use rand::random;
+
 use crate::{ray::RayHit, Color, Ray, Vec3};
 
 /// A description of how rays scatter off of a surface.
@@ -31,6 +33,12 @@ impl Dielectric {
     pub fn new(refractive_index: f64) -> Self {
         Self { refractive_index }
     }
+
+    fn reflectance(cos_theta: f64, refractive_ratio: f64) -> f64 {
+        // Use Schlick's approximation for reflectance
+        let r0 = ((1. - refractive_ratio) / (1. + refractive_ratio)).powi(2);
+        r0 + (1. - r0) * (1. - cos_theta).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -42,8 +50,14 @@ impl Material for Dielectric {
             (self.refractive_index, 1., -hit_record.normal)
         };
         let unit_direction = ray.direction().normalized();
-        let refracted = unit_direction.refract(&normal, eta, eta_prime);
-        let direction = Ray::new(hit_record.p, refracted);
+        let reflectance =
+            Self::reflectance(-unit_direction.dot(&normal.normalized()), eta / eta_prime);
+        let direction = if reflectance > random::<f64>() {
+            unit_direction.reflect_about(&normal)
+        } else {
+            unit_direction.refract(&normal, eta, eta_prime)
+        };
+        let direction = Ray::new(hit_record.p, direction);
         Some(ScatterRecord {
             attenuation,
             direction,
