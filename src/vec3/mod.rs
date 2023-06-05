@@ -122,6 +122,18 @@ impl Vec3 {
     pub fn reflect_about(&self, rhs: &Self) -> Self {
         self - 2. * self.dot(rhs) * rhs
     }
+
+    /// Returns the refraction of `self` through a surface from a refractive index of `eta` to a
+    /// refractive index of `eta_prime`. `normal` is the normal vector at the point of refraction
+    /// that points into the `eta` medium.
+    pub fn refract(&self, normal: &Vec3, eta: f64, eta_prime: f64) -> Self {
+        let this = self.normalized();
+        let normal = normal.normalized();
+        let cos_theta = -this.dot(&normal);
+        let res_perp = eta / eta_prime * (this + cos_theta * normal);
+        let res_parallel = -(1.0 - res_perp.length_squared()).abs().sqrt() * normal;
+        res_perp + res_parallel
+    }
 }
 
 impl Add for Vec3 {

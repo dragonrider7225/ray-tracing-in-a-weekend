@@ -18,6 +18,43 @@ pub struct ScatterRecord {
     pub direction: Ray,
 }
 
+/// A dielectric material allows light to pass through it but will change the angle at its surface
+/// according to its refractive index. The refractive index of air is defined to be 1.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Dielectric {
+    refractive_index: f64,
+}
+
+impl Dielectric {
+    /// Creates a new Dielectric material. `refractive_index` is a measure of how much light is
+    /// biased toward the inward normal when it enters the material.
+    pub fn new(refractive_index: f64) -> Self {
+        Self { refractive_index }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray: &Ray, hit_record: &RayHit) -> Option<ScatterRecord> {
+        let attenuation = Color::new(1.0, 1.0, 1.0);
+        let (eta, eta_prime, normal) = if ray.direction().dot(&hit_record.normal) < 0. {
+            (1., self.refractive_index, hit_record.normal)
+        } else {
+            (self.refractive_index, 1., -hit_record.normal)
+        };
+        let unit_direction = ray.direction().normalized();
+        let refracted = unit_direction.refract(&normal, eta, eta_prime);
+        let direction = Ray::new(hit_record.p, refracted);
+        Some(ScatterRecord {
+            attenuation,
+            direction,
+        })
+    }
+
+    fn name(&self) -> &'static str {
+        "Dielectric"
+    }
+}
+
 /// A Lambertian material appears equally bright from all angles.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Lambertian {

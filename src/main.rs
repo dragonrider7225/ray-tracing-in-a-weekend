@@ -11,7 +11,7 @@ use std::{
 
 use ray_tracing::{
     camera::Camera,
-    material::{Lambertian, Metal, ScatterRecord},
+    material::{Dielectric, Lambertian, Metal, ScatterRecord},
     object::{List, Sphere},
     ray::Hittable,
     Color, Point3, Ray,
@@ -51,8 +51,10 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
 
     let mut world = List::default();
     let ground_material = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let center_material = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let left_material = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let center_material = Arc::new(Dielectric::new(1.5));
+    let left_material = Arc::new(Dielectric::new(1.5));
+    // let center_material = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    // let left_material = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
     let right_material = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
     world.push(Arc::new(Sphere::new(
         Point3::new(0., -100.5, -1.),
