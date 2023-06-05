@@ -25,7 +25,7 @@ impl Sphere {
     {
         Self {
             center,
-            radius: radius.max(0.),
+            radius,
             material,
         }
     }
