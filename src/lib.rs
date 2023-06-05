@@ -4,6 +4,9 @@
 #![warn(missing_copy_implementations, missing_docs, rust_2018_idioms)]
 #![deny(unsafe_op_in_unsafe_fn, missing_debug_implementations)]
 
+/// An angle should carry its units with it.
+pub mod angle;
+
 /// A camera produces [`Ray`]s.
 pub mod camera;
 
