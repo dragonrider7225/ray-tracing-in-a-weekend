@@ -125,14 +125,23 @@ impl Vec3 {
 
     /// Returns the refraction of `self` through a surface from a refractive index of `eta` to a
     /// refractive index of `eta_prime`. `normal` is the normal vector at the point of refraction
-    /// that points into the `eta` medium.
+    /// that points into the `eta` medium. If the angle that `self` makes with the surface is
+    /// sufficiently steep, the "refracted" ray will be the reflection of `self` about `normal`.
     pub fn refract(&self, normal: &Vec3, eta: f64, eta_prime: f64) -> Self {
         let this = self.normalized();
         let normal = normal.normalized();
+        let refraction_ratio = eta / eta_prime;
         let cos_theta = -this.dot(&normal);
-        let res_perp = eta / eta_prime * (this + cos_theta * normal);
-        let res_parallel = -(1.0 - res_perp.length_squared()).abs().sqrt() * normal;
-        res_perp + res_parallel
+        let sin_theta = (1. - cos_theta * cos_theta).sqrt();
+
+        let cannot_refract = refraction_ratio * sin_theta > 1.;
+        if cannot_refract {
+            self.reflect_about(&normal)
+        } else {
+            let res_perp = refraction_ratio * (this + cos_theta * normal);
+            let res_parallel = -(1.0 - res_perp.length_squared()).abs().sqrt() * normal;
+            res_perp + res_parallel
+        }
     }
 }
 
