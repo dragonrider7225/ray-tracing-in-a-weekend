@@ -11,7 +11,7 @@ use std::{
 
 use ray_tracing::{
     angle::Angle,
-    camera::{Camera, Orientation},
+    camera::{Camera, Orientation, Structure},
     material::{Dielectric, Lambertian, Metal, ScatterRecord},
     object::{List, Sphere},
     ray::Hittable,
@@ -81,14 +81,20 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
         right_material,
     )));
 
+    let camera_origin = Point3::new(3., 3., 2.);
+    let look_at = Point3::new(0., 0., -1.);
     let camera = Camera::new(
         Orientation {
-            origin: Point3::new(-2., 2., 1.),
-            look_at: Point3::new(0., 0., -1.),
+            origin: camera_origin,
+            look_at,
             up: Vec3::new(0., 1., 0.),
         },
-        Angle::Degrees(20.),
-        ASPECT_RATIO,
+        Structure {
+            vertical_fov: Angle::Degrees(20.),
+            aspect_ratio: ASPECT_RATIO,
+            aperture_width: 2.,
+            focus_distance: (camera_origin - look_at).length(),
+        },
     );
 
     writeln!(out, "P3")?;

@@ -41,6 +41,18 @@ impl Vec3 {
         }
     }
 
+    /// Generates a uniformly-distributed random vector from the unit disk in the xy-plane centered
+    /// on the origin.
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let mut v = Self::random(-1.0..1.);
+            v.z = 0.;
+            if v.length_squared() < 1. {
+                break v;
+            }
+        }
+    }
+
     /// Generates a uniformly-distributed random vector from the surface of the unit sphere
     /// centered on the origin.
     pub fn random_unit_vector() -> Self {
