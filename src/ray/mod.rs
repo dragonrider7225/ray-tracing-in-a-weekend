@@ -66,7 +66,7 @@ impl Debug for RayHit {
 }
 
 /// An object that can be hit by a [`Ray`].
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     /// Checks whether the ray hits this object no earlier than `valid_t.start()` and no later than
     /// `valid_t.end()`. If it does, returns the lowest such value of `t`.
     fn hit_by(&self, ray: &Ray, valid_t: RangeInclusive<f64>) -> Option<RayHit>;

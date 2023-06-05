@@ -11,6 +11,8 @@ use rand::{
     Rng,
 };
 
+use crate::Color;
+
 /// A 3D vector.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3 {
@@ -473,5 +475,11 @@ impl Distribution<Vec3> for Uniform<f64> {
             y: coords.next().unwrap(),
             z: coords.next().unwrap(),
         }
+    }
+}
+
+impl From<Color> for Vec3 {
+    fn from(this: Color) -> Self {
+        Self::new(this.red(), this.green(), this.blue())
     }
 }

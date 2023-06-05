@@ -9,7 +9,7 @@ use std::{
     sync::Arc,
 };
 
-use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
+use rand::{distributions::WeightedIndex, prelude::*};
 use ray_tracing::{
     angle::Angle,
     camera::{Camera, Orientation, Structure},
@@ -18,6 +18,7 @@ use ray_tracing::{
     ray::Hittable,
     Color, Point3, Ray, Vec3,
 };
+use rayon::prelude::*;
 
 fn ray_color(ray: &Ray, world: &dyn Hittable, max_depth: usize) -> Color {
     if max_depth == 0 {
@@ -50,7 +51,7 @@ fn write_image(
     height: u32,
     samples_per_pixel: usize,
     camera: &Camera,
-    world: &dyn Hittable,
+    world: &(dyn Hittable + Sync),
     max_depth: usize,
 ) -> io::Result<()> {
     writeln!(out, "P3")?;
@@ -59,7 +60,7 @@ fn write_image(
     for j in (0..height).rev() {
         writeln!(io::stderr().lock(), "Scanlines remaining: {j}")?;
         for i in 0..width {
-            let color = Color::merge_samples((0..samples_per_pixel).map(|_| {
+            let color = Color::merge_samples((0..samples_per_pixel).into_par_iter().map(|_| {
                 let u = (i as f64 + rand::random::<f64>()) / (width - 1) as f64;
                 let v = (j as f64 + rand::random::<f64>()) / (height - 1) as f64;
                 ray_color(&camera.get_ray(u, v), world, max_depth)

@@ -3,7 +3,7 @@ use rand::random;
 use crate::{ray::RayHit, Color, Ray, Vec3};
 
 /// A description of how rays scatter off of a surface.
-pub trait Material {
+pub trait Material: Send + Sync {
     /// Scatters the given ray off of this material with the specified hit.
     fn scatter(&self, ray: &Ray, hit_record: &RayHit) -> Option<ScatterRecord>;
 

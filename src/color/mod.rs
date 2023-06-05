@@ -8,6 +8,7 @@ use rand::{
     prelude::Distribution,
     Rng,
 };
+use rayon::prelude::ParallelIterator;
 
 use crate::Vec3;
 
@@ -30,12 +31,10 @@ impl Color {
     }
 
     /// Averages the samples to produce a single color.
-    pub fn merge_samples(samples: impl Iterator<Item = Self>) -> Self {
+    pub fn merge_samples(samples: impl ParallelIterator<Item = Self>) -> Self {
         let (num_samples, sum) = samples
-            .map(|sample| Vec3::new(sample.r, sample.g, sample.b))
-            .fold((0., Vec3::default()), |(num_samples, sum), sample| {
-                (num_samples + 1., sum + sample)
-            });
+            .map(|sample| (1., Vec3::from(sample)))
+            .reduce(Default::default, |(c1, s1), (c2, s2)| (c1 + c2, s1 + s2));
         Self {
             r: sum.x() / num_samples,
             g: sum.y() / num_samples,
