@@ -67,6 +67,11 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     world.push(Arc::new(Sphere::new(
         Point3::new(-1., 0., -1.),
         0.5,
+        Arc::clone(&left_material),
+    )));
+    world.push(Arc::new(Sphere::new(
+        Point3::new(-1., 0., -1.),
+        -0.4,
         left_material,
     )));
     world.push(Arc::new(Sphere::new(

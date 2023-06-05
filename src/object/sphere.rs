@@ -19,7 +19,10 @@ pub struct Sphere {
 
 impl Sphere {
     /// Creates a new sphere centered at `center` and with a radius of `radius`.
-    pub fn new(center: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
+    pub fn new<M>(center: Point3, radius: f64, material: Arc<M>) -> Self
+    where
+        M: Material + 'static,
+    {
         Self {
             center,
             radius: radius.max(0.),
