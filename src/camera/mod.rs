@@ -1,4 +1,4 @@
-use crate::{Point3, Ray, Vec3};
+use crate::{angle::Angle, Point3, Ray, Vec3};
 
 /// The point that the image is seen from.
 #[derive(Clone, Copy, Debug)]
@@ -11,8 +11,9 @@ pub struct Camera {
 
 impl Camera {
     /// Creates a new camera.
-    pub fn new(aspect_ratio: f64) -> Self {
-        let viewport_height = 2.;
+    pub fn new(vertical_fov: Angle, aspect_ratio: f64) -> Self {
+        let h = (vertical_fov / 2.).tan();
+        let viewport_height = 2. * h;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.;
         let origin = Point3::default();
