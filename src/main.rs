@@ -5,10 +5,12 @@
 #![deny(unsafe_op_in_unsafe_fn, missing_debug_implementations)]
 
 use std::{
+    fs::File,
     io::{self, Write},
     sync::Arc,
 };
 
+use clap::{Parser, Subcommand};
 use rand::{distributions::WeightedIndex, prelude::*};
 use ray_tracing::{
     angle::Angle,
@@ -238,7 +240,72 @@ fn write_static_ppm_image(out: &mut dyn Write) -> io::Result<()> {
     )
 }
 
+#[derive(Clone, Debug, Subcommand)]
+enum SceneType {
+    /// Raytrace the static scene baked into the executable. Invoking this mode multiple times will
+    /// produce images that are identical except for minute differences due to the randomness in
+    /// the direction that rays are scattered.
+    Static,
+    /// Raytrace the random scene baked into the executable. The three large spheres do not change
+    /// from one invocation to the next but the locations, colors, and materials of the small
+    /// spheres do.
+    Random,
+    /// Raytrace the scene defined in the file <IN>. Not yet implemented.
+    File {
+        #[arg(short, long)]
+        r#in: String,
+    },
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version)]
+struct Args {
+    #[command(subcommand)]
+    scene_type: SceneType,
+    /// The file to write the image to. Whitespace at the beginning and end of the filename will be
+    /// ignored. If the given filename is empty or "-", the image will be written to stdout.
+    #[arg(short, long, default_value = "-")]
+    out: String,
+}
+
+enum FileOrStdout {
+    Stdout,
+    File(File),
+}
+
+impl Write for FileOrStdout {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self {
+            Self::Stdout => io::stdout().lock().write(buf),
+            Self::File(f) => f.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        match self {
+            Self::Stdout => io::stdout().lock().flush(),
+            Self::File(f) => f.flush(),
+        }
+    }
+}
+
 fn main() -> io::Result<()> {
-    write_random_ppm_image(&mut io::stdout().lock())?;
-    Ok(())
+    let args = Args::parse();
+    let mut out = match args.out.trim() {
+        "" | "-" => FileOrStdout::Stdout,
+        filename => FileOrStdout::File(
+            File::options()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(filename)?,
+        ),
+    };
+    match args.scene_type {
+        SceneType::Static => write_static_ppm_image(&mut out),
+        SceneType::Random => write_random_ppm_image(&mut out),
+        SceneType::File { r#in } => {
+            todo!("Scene in {in:?}")
+        }
+    }
 }
